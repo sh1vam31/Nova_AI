@@ -1,4 +1,4 @@
- AI Assistant
+#Nova AI Assistant
 
 A modern voice and text-controlled AI assistant with a beautiful web UI built using Streamlit. Jarvis can help you with various tasks including web browsing, calculations, weather, notes, and AI-powered conversations.
 
