@@ -143,20 +143,6 @@ Use the quick command buttons in the sidebar for common tasks.
   - Show/hide command history
   - Auto-save responses
 
-## 📁 Project Structure
-
-```
-Audio-AI/
-├── app.py              # Main Streamlit application
-├── main.py             # Original CLI version
-├── utils.py            # Utility functions
-├── config.py           # Configuration and API keys
-├── requirements.txt    # Python dependencies
-├── README.md          # This file
-├── .env.example       # Environment variables template
-└── .gitignore         # Git ignore file
-```
-
 ## 🎯 Available Commands
 
 ### Website Commands
@@ -214,19 +200,6 @@ Audio-AI/
 - [ ] File management commands
 - [ ] Integration with smart home devices
 
-## 📝 License
-
-This project is open source and available under the MIT License.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📧 Support
-
-For issues and questions, please open an issue on the repository.
-
----
 
 **Enjoy using Jarvis AI Assistant! 🚀**
 
