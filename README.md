@@ -2,33 +2,33 @@
 
 A modern voice and text-controlled AI assistant with a beautiful web UI built using Streamlit. Jarvis can help you with various tasks including web browsing, calculations, weather, notes, and AI-powered conversations.
 
-## ✨ Features
+##  Features
 
 ### Core Features
-- 🎤 **Voice Recognition**: Speak commands naturally
-- 💬 **Text Input**: Type commands if you prefer
-- 🤖 **AI Chat**: Conversational AI using multiple providers
+-  **Voice Recognition**: Speak commands naturally
+-  **Text Input**: Type commands if you prefer
+-  **AI Chat**: Conversational AI using multiple providers
   - **OpenAI** (GPT-3.5, GPT-4) - Paid
   - **Groq** (Llama, Mixtral) - 🆓 Free & Very Fast
   - **Hugging Face** (Mistral, Gemma) - 🆓 Free
   - **Together AI** (Llama, Mixtral) - 🆓 Free Tier
   - **Anthropic Claude** - 🆓 Free Trial
-- 🌐 **Web Navigation**: Open websites with voice commands
-- ⏰ **Time & Date**: Get current time and date
-- 🌤️ **Weather**: Get weather information (requires API key)
-- 🧮 **Calculator**: Perform mathematical calculations
-- 📝 **Notes**: Save and retrieve notes
-- 📰 **News**: Get news updates (requires API key)
+-  **Web Navigation**: Open websites with voice commands
+-  **Time & Date**: Get current time and date
+-  **Weather**: Get weather information (requires API key)
+-  **Calculator**: Perform mathematical calculations
+-  **Notes**: Save and retrieve notes
+-  **News**: Get news updates (requires API key)
 
 ### UI Features
-- 🎨 **Modern Interface**: Beautiful, responsive web UI
-- 💾 **Chat History**: View conversation history
-- 📊 **Command History**: Track all commands and responses
-- ⚙️ **Settings Panel**: Customize voice, AI model, and more
-- 📥 **Export Chat**: Download chat history as JSON
-- 🎯 **Quick Commands**: One-click access to common commands
+-  **Modern Interface**: Beautiful, responsive web UI
+-  **Chat History**: View conversation history
+-  **Command History**: Track all commands and responses
+-  **Settings Panel**: Customize voice, AI model, and more
+-  **Export Chat**: Download chat history as JSON
+-  **Quick Commands**: One-click access to common commands
 
-## 🚀 Quick Start
+##  Quick Start
 
 1. **Clone the repository** (or download the files)
 2. **Install dependencies**: `pip install -r requirements.txt`
@@ -47,7 +47,7 @@ A modern voice and text-controlled AI assistant with a beautiful web UI built us
 5. **Run the app**: `streamlit run app.py`
 6. **Select provider** in the sidebar and start chatting!
 
-## 🚀 Installation
+##  Installation
 
 ### Prerequisites
 - Python 3.7 or higher
@@ -143,7 +143,7 @@ Use the quick command buttons in the sidebar for common tasks.
   - Show/hide command history
   - Auto-save responses
 
-## 🎯 Available Commands
+##  Available Commands
 
 ### Website Commands
 - Open YouTube
@@ -167,13 +167,13 @@ Use the quick command buttons in the sidebar for common tasks.
 - Chat naturally with Jarvis
 - "Using artificial intelligence [your prompt]"
 
-## 🔒 Security
+##  Security
 
 - API keys are stored in `.env` file (not committed to git)
 - Use environment variables for sensitive data
 - Never share your API keys publicly
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### Voice Recognition Issues
 - Make sure your microphone is working
@@ -190,7 +190,7 @@ Use the quick command buttons in the sidebar for common tasks.
 - On Linux, install `espeak` or `festival`
 - On Windows, install `pyttsx3` dependencies
 
-## 🚧 Future Enhancements
+##  Future Enhancements
 
 - [ ] Support for more languages
 - [ ] Integration with calendar and reminders
@@ -201,5 +201,5 @@ Use the quick command buttons in the sidebar for common tasks.
 - [ ] Integration with smart home devices
 
 
-**Enjoy using Jarvis AI Assistant! 🚀**
+**Enjoy using Jarvis AI Assistant! **
 
