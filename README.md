@@ -1,4 +1,6 @@
-#Nova AI Assistant
+# Nova AI Assistant
+
+Live : https://novaai-bgft9zmw3b5f8lp3j5mvbk.streamlit.app/
 
 A modern voice and text-controlled AI assistant with a beautiful web UI built using Streamlit. Jarvis can help you with various tasks including web browsing, calculations, weather, notes, and AI-powered conversations.
 
