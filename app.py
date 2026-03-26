@@ -3,7 +3,6 @@ import speech_recognition as sr
 import os
 import webbrowser
 import datetime
-import time
 import json
 from utils import (
     ai_chat, ai_completion, save_ai_response, 
@@ -47,10 +46,23 @@ st.markdown("""
     .user-message {
         background-color: #e3f2fd;
         text-align: right;
+        color: #000000;
     }
     .assistant-message {
         background-color: #f1f8e9;
         text-align: left;
+        color: #000000;
+    }
+    .chat-message {
+        color: #000000;
+    }
+    /* Make text input text black */
+    .stTextInput>div>div>input {
+        color: #000000;
+    }
+    /* Make text input label black */
+    .stTextInput label {
+        color: #000000;
     }
     .stButton>button {
         width: 100%;
@@ -208,11 +220,11 @@ def process_command(query, ai_model="gpt-3.5-turbo", temperature=0.7, ai_provide
     messages = [{"role": "system", "content": "You are Jarvis, a helpful AI assistant. Be conversational, friendly, and helpful. Keep responses concise but engaging. You can have natural conversations with the user."}]
     
     # Include more chat history for context (last 10 messages = 5 exchanges)
-    for chat in st.session_state.chat_history[-10:]:
-        if chat["role"] == "user":
-            messages.append({"role": "user", "content": chat["content"]})
-        elif chat["role"] == "assistant":
-            messages.append({"role": "assistant", "content": chat["content"]})
+    for prev_chat in st.session_state.chat_history[-10:]:
+        if prev_chat["role"] == "user":
+            messages.append({"role": "user", "content": prev_chat["content"]})
+        elif prev_chat["role"] == "assistant":
+            messages.append({"role": "assistant", "content": prev_chat["content"]})
     
     messages.append({"role": "user", "content": query})
     

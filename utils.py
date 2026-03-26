@@ -11,20 +11,11 @@ from ai_providers import chat_with_provider, get_available_providers, get_provid
 load_dotenv()
 
 # Initialize OpenAI client with API key
-# OpenAI v1.0+ uses new client structure
 try:
-    # New OpenAI client (v1.0+) - this is the modern way
     client = openai.OpenAI(api_key=apikey)
-    USE_NEW_CLIENT = True
-except Exception:
-    # Fallback: try old API style (for backward compatibility)
-    try:
-        openai.api_key = apikey
-        USE_NEW_CLIENT = False
-    except:
-        # Last resort: create client anyway
-        client = openai.OpenAI(api_key=apikey)
-        USE_NEW_CLIENT = True
+except Exception as e:
+    # If initialization fails, we'll handle it in the chat functions
+    client = None
 
 def get_weather(city="London"):
     """Get weather information for a city"""
@@ -136,7 +127,6 @@ def read_notes(filename="notes.txt"):
         return "No notes found."
     except Exception as e:
         return f"Error reading notes: {str(e)}"
-
 def ai_chat(messages, model="gpt-3.5-turbo", temperature=0.7, provider="openai"):
     """Chat with AI using specified provider (OpenAI, Groq, Hugging Face, etc.)"""
     try:
@@ -145,61 +135,26 @@ def ai_chat(messages, model="gpt-3.5-turbo", temperature=0.7, provider="openai")
             return chat_with_provider(provider, messages, model, temperature)
         
         # Default to OpenAI
-        # Validate API key first
-        if not apikey or apikey == "your_api_key_here" or len(apikey) < 20:
-            # Try to use a free provider as fallback
+        if not client or not apikey or apikey == "your_api_key_here" or len(apikey) < 20:
+            # Try to use a free provider as fallback if available
             available_providers = get_available_providers()
             if available_providers:
-                free_provider = [p for p in available_providers if p != "openai"]
-                if free_provider:
-                    return f"OpenAI API key not found. Switching to {PROVIDERS[free_provider[0]]['name']}...\n\n" + chat_with_provider(free_provider[0], messages, None, temperature)
-            return "Error: Invalid API key. Please set a valid OPENAI_API_KEY in your .env file. See GET_API_KEY.md for instructions. Alternatively, you can use free providers like Groq, Hugging Face, or Together AI."
+                free_providers = [p for p in available_providers if p != "openai"]
+                if free_providers:
+                    return f"OpenAI API key not found. Switching to {PROVIDERS[free_providers[0]]['name']}...\n\n" + chat_with_provider(free_providers[0], messages, None, temperature)
+            return "Error: Invalid API key. Please set a valid OPENAI_API_KEY in your .env file."
         
-        if USE_NEW_CLIENT:
-            # Use new OpenAI client (v1.0+) with ChatCompletion
-            response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=1000
-            )
-            return response.choices[0].message.content.strip()
-        else:
-            # Try to use ChatCompletion with old API
-            try:
-                response = openai.ChatCompletion.create(
-                    model=model,
-                    messages=messages,
-                    temperature=temperature,
-                    max_tokens=1000
-                )
-                return response["choices"][0]["message"]["content"].strip()
-            except AttributeError:
-                # Fallback: build conversation string for Completion API
-                conversation = ""
-                for msg in messages:
-                    role = msg.get("role", "user")
-                    content = msg.get("content", "")
-                    if role == "system":
-                        conversation += f"System: {content}\n\n"
-                    elif role == "user":
-                        conversation += f"User: {content}\n\n"
-                    elif role == "assistant":
-                        conversation += f"Assistant: {content}\n\n"
-                
-                conversation += "Assistant: "
-                
-                # Use gpt-3.5-turbo-instruct as fallback (still available)
-                response = openai.Completion.create(
-                    model="gpt-3.5-turbo-instruct",
-                    prompt=conversation,
-                    temperature=temperature,
-                    max_tokens=1000,
-                    top_p=1,
-                    frequency_penalty=0,
-                    presence_penalty=0
-                )
-                return response["choices"][0]["text"].strip()
+        # Ensure client is available for OpenAI calls
+        if not client:
+             return "Error: OpenAI client not initialized."
+             
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=1000
+        )
+        return response.choices[0].message.content.strip()
     except openai.AuthenticationError as e:
         # Try free providers as fallback
         available_providers = get_available_providers()
@@ -253,30 +208,20 @@ def ai_chat(messages, model="gpt-3.5-turbo", temperature=0.7, provider="openai")
 def ai_completion(prompt, model="gpt-3.5-turbo-instruct", temperature=0.7, max_tokens=500):
     """Get AI completion for a prompt"""
     try:
-        if USE_NEW_CLIENT:
-            # Use new client with Completion API
-            response = client.completions.create(
-                model=model,
-                prompt=prompt,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=1,
-                frequency_penalty=0,
-                presence_penalty=0
-            )
-            return response.choices[0].text.strip()
-        else:
-            # Use old API
-            response = openai.Completion.create(
-                model=model,
-                prompt=prompt,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=1,
-                frequency_penalty=0,
-                presence_penalty=0
-            )
-            return response["choices"][0]["text"].strip()
+        if not client:
+             return "Error: OpenAI client not initialized."
+             
+        # completions are for legacy models or gpt-3.5-turbo-instruct
+        response = client.completions.create(
+            model=model,
+            prompt=prompt,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0
+        )
+        return response.choices[0].text.strip()
     except Exception as e:
         error_msg = str(e)
         # Provide helpful error messages
