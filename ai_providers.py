@@ -45,6 +45,13 @@ PROVIDERS = {
         "free_tier": True,
         "key_env": "ANTHROPIC_API_KEY",
         "models": ["claude-3-haiku-20240307", "claude-3-sonnet-20240229"]
+    },
+    "google": {
+        "name": "Google Gemini (Free Tier)",
+        "requires_key": True,
+        "free_tier": True,
+        "key_env": "GOOGLE_API_KEY",
+        "models": ["gemini-1.5-flash", "gemini-1.5-pro"]
     }
 }
 
@@ -237,6 +244,51 @@ def chat_anthropic(messages: List[Dict], model: str = "claude-3-haiku-20240307",
     except Exception as e:
         return f"Error with Anthropic API: {str(e)}"
 
+def chat_gemini(messages: List[Dict], model: str = "gemini-1.5-flash", temperature: float = 0.7) -> str:
+    """Chat using Google Gemini API (Free Tier)"""
+    try:
+        import google.generativeai as genai
+        
+        api_key = get_provider_key("google")
+        if not api_key:
+            return "Error: GOOGLE_API_KEY not found in .env file. Get a free key from https://aistudio.google.com/"
+        
+        genai.configure(api_key=api_key)
+        
+        # Convert messages format for Gemini
+        gemini_messages = []
+        system_instruction = ""
+        
+        for msg in messages:
+            role = msg.get("role", "user")
+            content = msg.get("content", "")
+            if role == "system":
+                system_instruction = content
+            else:
+                gemini_messages.append({
+                    "role": "user" if role == "user" else "model",
+                    "parts": [content]
+                })
+        
+        model_instance = genai.GenerativeModel(
+            model_name=model,
+            system_instruction=system_instruction if system_instruction else None
+        )
+        
+        response = model_instance.generate_content(
+            contents=gemini_messages,
+            generation_config=genai.GenerationConfig(
+                temperature=temperature,
+                max_output_tokens=1000
+            )
+        )
+        
+        return response.text.strip()
+    except ImportError:
+        return "Error: google-generativeai package not installed. Run: pip install google-generativeai"
+    except Exception as e:
+        return f"Error with Gemini API: {str(e)}"
+
 def chat_openai(messages: List[Dict], model: str = "gpt-3.5-turbo", temperature: float = 0.7) -> str:
     """Chat using OpenAI API"""
     try:
@@ -273,6 +325,9 @@ def chat_with_provider(provider: str, messages: List[Dict], model: str = None, t
     elif provider == "anthropic":
         default_model = "claude-3-haiku-20240307"
         return chat_anthropic(messages, model or default_model, temperature)
+    elif provider == "google":
+        default_model = "gemini-1.5-flash"
+        return chat_gemini(messages, model or default_model, temperature)
     elif provider == "openai":
         default_model = "gpt-3.5-turbo"
         return chat_openai(messages, model or default_model, temperature)
