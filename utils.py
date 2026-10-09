@@ -17,30 +17,42 @@ except Exception as e:
     # If initialization fails, we'll handle it in the chat functions
     client = None
 
-def get_weather(city="London"):
-    """Get weather information for a city"""
+def get_weather_data(city="London"):
+    """Get structured weather information for a city"""
     try:
-        # Using OpenWeatherMap API (free tier)
-        # Get API key from environment variable
         api_key = os.getenv("WEATHER_API_KEY")
-        
-        if not api_key or api_key == "your_weather_api_key":
-            return f"Weather service: Please configure WEATHER_API_KEY in .env file. Get a free key from openweathermap.org for {city}"
+        if not api_key or api_key in ["your_weather_api_key", "your_openweathermap_api_key_here"]:
+            return {"error": "Weather service key not configured in .env file"}
         
         base_url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
         response = requests.get(base_url, timeout=5)
         
         if response.status_code == 200:
             data = response.json()
-            desc = data['weather'][0]['description']
-            temp = data['main']['temp']
-            feels_like = data['main']['feels_like']
-            humidity = data['main']['humidity']
-            return f"Weather in {city}: {desc.capitalize()}, Temperature: {temp}°C (feels like {feels_like}°C), Humidity: {humidity}%"
+            return {
+                "city": data.get("name", city),
+                "country": data.get("sys", {}).get("country", ""),
+                "temp": round(data["main"]["temp"]),
+                "feels_like": round(data["main"]["feels_like"]),
+                "humidity": data["main"]["humidity"],
+                "wind_speed": round(data.get("wind", {}).get("speed", 0) * 3.6), # m/s to km/h
+                "description": data["weather"][0]["description"].capitalize(),
+                "main": data["weather"][0]["main"],
+                "icon": data["weather"][0]["icon"]
+            }
+        elif response.status_code == 401:
+            return {"error": "Weather API Key (401 Unauthorized): Key is invalid or pending activation (takes 10-30 mins for new keys)."}
         else:
-            return f"Error fetching weather for {city}: {response.status_code}"
+            return {"error": f"Error fetching weather for {city}: Status {response.status_code}"}
     except Exception as e:
-        return f"Error fetching weather: {str(e)}"
+        return {"error": f"Error fetching weather: {str(e)}"}
+
+def get_weather(city="London"):
+    """Get weather information for a city as text summary"""
+    wdata = get_weather_data(city)
+    if "error" in wdata:
+        return wdata["error"]
+    return f"Weather in {wdata['city']}, {wdata['country']}: {wdata['description']}, Temp: {wdata['temp']}°C (feels like {wdata['feels_like']}°C), Humidity: {wdata['humidity']}%, Wind: {wdata['wind_speed']} km/h"
 
 def calculate(expression):
     """Evaluate a mathematical expression safely"""

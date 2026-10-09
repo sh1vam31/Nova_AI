@@ -23,7 +23,12 @@ PROVIDERS = {
         "requires_key": True,
         "free_tier": True,
         "key_env": "GROQ_API_KEY",
-        "models": ["llama-3.1-8b-instant", "llama-3.3-70b-versatile", "mixtral-8x7b-32768", "gemma2-9b-it"]
+        "models": [
+            "openai/gpt-oss-120b",   # Best: 120B OpenAI-class model, very accurate
+            "qwen/qwen3.8-27b",       # Fast: Alibaba Qwen3 27B, great accuracy
+            "openai/gpt-oss-20b",     # Lighter: 20B, fastest response
+            "allam-2-7b"              # Fallback: small but capable
+        ]
     },
     "huggingface": {
         "name": "Hugging Face (Free)",
@@ -62,8 +67,8 @@ def get_provider_key(provider: str) -> Optional[str]:
     key_env = PROVIDERS[provider]["key_env"]
     return os.getenv(key_env)
 
-def chat_groq(messages: List[Dict], model: str = "llama-3.1-8b-instant", temperature: float = 0.7) -> str:
-    """Chat using Groq API (Free & Very Fast)"""
+def chat_groq(messages: List[Dict], model: str = "openai/gpt-oss-120b", temperature: float = 0.7) -> str:
+    """Chat using Groq API - Updated with latest available models"""
     try:
         from groq import Groq
         
@@ -73,18 +78,28 @@ def chat_groq(messages: List[Dict], model: str = "llama-3.1-8b-instant", tempera
         
         client = Groq(api_key=api_key)
         
-        # Available models (llama-3.1-70b-versatile is deprecated, use llama-3.3-70b-versatile instead)
-        available_models = ["llama-3.1-8b-instant", "llama-3.3-70b-versatile", "mixtral-8x7b-32768", "gemma2-9b-it"]
+        # Latest verified working models on Groq (as of Sep 2026)
+        available_models = [
+            "openai/gpt-oss-120b",  # Best accuracy, OpenAI-class 120B
+            "qwen/qwen3.8-27b",     # Fast & accurate, Qwen3 27B
+            "openai/gpt-oss-20b",   # Fastest, lighter 20B
+            "allam-2-7b"            # Fallback
+        ]
         
-        # Replace deprecated model with the new one
-        if model == "llama-3.1-70b-versatile":
-            model = "llama-3.3-70b-versatile"
+        # Map any old/deprecated model names to current equivalents
+        model_aliases = {
+            "llama-3.1-8b-instant": "openai/gpt-oss-20b",
+            "llama-3.3-70b-versatile": "openai/gpt-oss-120b",
+            "llama-3.1-70b-versatile": "openai/gpt-oss-120b",
+            "mixtral-8x7b-32768": "qwen/qwen3.8-27b",
+            "gemma2-9b-it": "openai/gpt-oss-20b",
+        }
+        model = model_aliases.get(model, model)
         
-        # Build list of models to try (requested model first, then fallbacks)
+        # Build list: requested model first, then fallbacks
         if model in available_models:
             models_to_try = [model] + [m for m in available_models if m != model]
         else:
-            # If model not in available list, use all available models
             models_to_try = available_models
         
         last_error = None
@@ -94,28 +109,21 @@ def chat_groq(messages: List[Dict], model: str = "llama-3.1-8b-instant", tempera
                     model=model_to_try,
                     messages=messages,
                     temperature=temperature,
-                    max_tokens=1000
+                    max_tokens=1500
                 )
                 return response.choices[0].message.content.strip()
             except Exception as e:
                 last_error = e
                 error_msg = str(e)
-                # If it's not a model-specific error (like auth), break immediately
                 if "401" in error_msg or "unauthorized" in error_msg.lower():
                     break
-                # Continue trying other models for model-specific errors
-                if "400" in error_msg or "model" in error_msg.lower() or "deprecated" in error_msg.lower():
-                    continue
-                # For other errors, break
+                if any(k in error_msg.lower() for k in ["404", "400", "model", "deprecated", "not found"]):
+                    continue  # Try next model
                 break
         
-        # If all models failed, return helpful error
         error_msg = str(last_error) if last_error else "Unknown error"
         if "401" in error_msg or "unauthorized" in error_msg.lower():
             return "Error: Invalid Groq API key. Please check your GROQ_API_KEY in the .env file."
-        elif "400" in error_msg or "model" in error_msg.lower() or "deprecated" in error_msg.lower():
-            available_models_str = ", ".join(available_models)
-            return f"Error: Could not find a working model. Tried: {', '.join(models_to_try[:3])}... Available models: {available_models_str}. Please check Groq's status or try a different model."
         return f"Error with Groq API: {error_msg}"
     except ImportError:
         return "Error: groq package not installed. Run: pip install groq"
@@ -314,7 +322,7 @@ def chat_openai(messages: List[Dict], model: str = "gpt-3.5-turbo", temperature:
 def chat_with_provider(provider: str, messages: List[Dict], model: str = None, temperature: float = 0.7) -> str:
     """Main function to chat with any provider"""
     if provider == "groq":
-        default_model = "llama-3.1-8b-instant"  # Fast and reliable default
+        default_model = "openai/gpt-oss-120b"  # Best available on your Groq plan
         return chat_groq(messages, model or default_model, temperature)
     elif provider == "huggingface":
         default_model = "mistralai/Mistral-7B-Instruct-v0.2"
